@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Simulation – Python Code</title>
+
+    <!-- Highlight.js CSS (Theme) -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+
+    <!-- Highlight.js Script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <!-- Python-Sprache laden (optional, aber besser) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            hljs.highlightAll();
+        });
+    </script>
+</head>
+<body>
+    <h1>Simulation Motorleistung – Python Code</h1>
+
+
+
+<h2>Publisher</h2>
+    
+	<pre><code class="language-python">
+'''
+
+Simulation der Maschinendaten (monotone e-Funktion)
+
+letzte Änderung: 13.12.2025
+
+'''
+import time
+import datetime
+import json
+import numpy as np
+import paho.mqtt.client as mqtt
+
+# --------------------------------------------------------------
+# Parameterblock
+mq_host = "127.0.0.1"
+mq_topic_data   = "Simulation_Motor"             # Topic für Simulationsdaten
+mq_topic_params = "Maschinensimulation/params"   # Topic für Parameter von Node-RED
+mq_topic_status = "maschine/running"             # normalisierter Maschinenstatus
+mq_topic_belt = "maschine/belt"                  # Bandwechsel
+# --------------------------------------------------------------
+
+# Simulationsparameter (Standardwerte)
+params = {
+    "P0": 3.5,      # Startleistung in kW
+    "Pend": 1.0,    # Endleistung in kW
+    "tau_s": 15.0   # Zeitkonstante in Sekunden
+}
+
+sim_t_s = 0.0
+cnt = 0
+running = False
+
+start_time = time.time()
+#running = False            # kommt von mq_topic_status
+
+# --------------------------------------------------------------
+# MQTT-Callbacks
+# --------------------------------------------------------------
+
+def on_connect(client, userdata, flags, rc):
+    print("Connected with result code", rc)
+    # Parameter + Status abonnieren
+    client.subscribe(mq_topic_params)
+    client.subscribe(mq_topic_status)
+    client.subscribe(mq_topic_belt)
+    print(f"Subscribed to: {mq_topic_params} und {mq_topic_status} und {mq_topic_belt}")
+
+
+def on_message(client, userdata, msg):
+    global params, running, sim_t_s, cnt
+
+    # 1) Parameter vom Node-RED
+    if msg.topic == mq_topic_params:
+        try:
+            payload = msg.payload.decode("utf-8")
+            new_params = json.loads(payload)
+            print("[SIM] Parameter empfangen:", new_params)
+
+            for k in params.keys():
+                if k in new_params:
+                    params[k] = float(new_params[k])
+
+            print("[SIM] Aktive Parameter:", params)
+        except Exception as e:
+            print("[SIM] Fehler beim Verarbeiten der Parameter:", e)
+
+    # 2) Maschinenstatus (Start/Stop)
+    elif msg.topic == mq_topic_status:
+        payload = msg.payload.decode("utf-8").strip()
+        print(f"[SIM] Status empfangen: {repr(payload)}")
+
+        running = (payload == "1")
+        print(f"[SIM] running = {running}")
+
+    # 3) Bandwechsel → nur Reset, NICHT starten/stoppen
+    elif msg.topic == mq_topic_belt:
+        payload = msg.payload.decode("utf-8").strip()
+        print(f"[SIM] Band gewechselt: {repr(payload)}")
+
+        # Zeit & Zähler zurücksetzen, running NICHT anfassen
+        sim_t_s = 0.0
+        cnt = 0
+
+        print(f"[SIM] Reset für neues Band: sim_t_s={sim_t_s}, cnt={cnt}, running={running}")
+
+
+
+
+# __main__ ======================================================
+client = mqtt.Client()
+client.on_connect = on_connect
+client.on_message = on_message
+
+client.connect(mq_host, 1883, 60)
+client.loop_start()
+
+sim_t_s = 0.0   # ganz oben vor der Schleife definieren
+
+cnt = 0
+print("Starte Simulationsschleife...")
+
+try:
+    while True:
+        time.sleep(1)      # reale Zeit, 1 s warten
+        dt = 1.0           # Simulationsschrittzeit in s
+
+        ts = datetime.datetime.now()
+
+        # Wenn Maschine AUS → Nullleistung ausgeben
+        if not running:
+            PL = {
+                "t_unix": time.time(),
+                "ts": str(ts),
+                "t_s": sim_t_s,   # bleibt stehen
+                "cnt": cnt,       # bleibt stehen
+                "P_kW": 0.0,      # Nullleistung ausgeben
+                "P0": params["P0"],
+                "Pend": params["Pend"],
+                "tau_s": params["tau_s"]
+            }
+
+            jPL = json.dumps(PL)
+            client.publish(topic=mq_topic_data, payload=jPL)
+            print("[SIM] PAUSE → Nullleistung", PL)
+            continue   # zurück zum Schleifenanfang (kein Fortschritt der Simulation)
+
+        # Ab hier nur, wenn running == True
+        cnt += 1
+        sim_t_s += dt
+
+        P0 = params["P0"]
+        Pend = params["Pend"]
+        tau_s = params["tau_s"]
+
+        P_kW = Pend + (P0 - Pend) * np.exp(-sim_t_s / tau_s)
+
+        # Zufallstreuung ±1 %
+        rand_factor = 1.0 + np.random.uniform(-0.01, 0.01)
+        P_kW *= rand_factor
+
+        PL = {
+            "t_unix": time.time(),   # echte Zeit → fürs Log okay
+            "ts": str(ts),
+            "t_s": sim_t_s,          # Simulationszeit!
+            "cnt": cnt,
+            "P_kW": float(P_kW),
+            "P0": P0,
+            "Pend": Pend,
+            "tau_s": tau_s
+        }
+
+        jPL = json.dumps(PL)
+        client.publish(topic=mq_topic_data, payload=jPL)
+        print("[SIM]", PL)
+
+
+
+except KeyboardInterrupt:
+    print("Beende Simulation...")
+
+finally:
+    client.loop_stop()
+    client.disconnect()
+
+
+	 </code></pre>
+
+
+
+
+
+<h2>Subscriber Maschinensimulation</h2>
+
+<pre><code class="language-python">
+
+
+'''
+
+- subribed mqtt-basierte json-Daten (Maschinensimulation)
+- schreibt die Daten in die MongoDB
+
+letzte Änderung: 13.12.2025
+
+'''
+import paho.mqtt.client as mqtt
+from pymongo import MongoClient
+import json
+# --------------------------------------------------------------
+# Parameterblock
+mdb_mq_host = "127.0.0.1"        # lokaler PC
+mdb_db = "Motorleistung"
+mdb_col = "Simulation"       # letzte IP-Adr-Nr
+mq_topic = "Simulation_Motor"   # letzte IP-Adr-Nr
+
+# --------------------------------------------------------------
+
+cnt = 0
+
+class mqClient():
+    def __init__(self,col):
+        self.col = col
+        
+    def on_connect(self,client, userdata, flags, rc):
+        print("Connected with result code " + str(rc))
+        client.subscribe("Simulation_Motor")
+
+    def on_message(self,client, userdata, msg):
+        global cnt
+        cnt +=1
+        print(cnt, '     ',msg.topic + " " + str(msg.payload))
+        # payload enthält ein json-Objekt mit allen gesendeten Datenwerten {key1:value1, key2:value2}
+        data = json.loads(msg.payload)
+        print(data)
+        # Schreiben in die MongoDB
+        result = self.col.insert_one(data)
+
+# __main__ ======================================================
+mo_client = MongoClient(mdb_mq_host, 27017)
+db = mo_client[mdb_db]
+col = db[mdb_col]
+# col.drop()      # Löschen der bereits erzeugten Collection (ggf. auskommentieren...)
+
+mqC = mqClient(col)
+
+client = mqtt.Client()
+client.on_connect = mqC.on_connect
+client.on_message = mqC.on_message
+
+client.connect(mdb_mq_host, 1883, 60)
+
+client.loop_forever()
+
+    </code></pre>
+
+
+
+
+    <h2>Abfrage Maschinenstatus</h2>
+
+<pre><code class="language-python">
+
+'''
+
+- Abfrage Maschinenzustand (Programm läuft oder läuft nicht)
+
+letzte Änderung: 13.12.2025
+
+'''
+
+import paho.mqtt.client as mqtt
+import time
+
+BROKER_HOST = "localhost"
+TOPIC_INPUT  = "maschine/status"    # Rohstatus vom Schalter / Node-RED
+TOPIC_OUTPUT = "maschine/running"   # normalisierter Status für alle anderen
+
+running = False
+
+def on_message(client, userdata, msg):
+    global running
+    payload = msg.payload.decode().strip()
+    print(f"[STATUS] Eingehend: topic={msg.topic}, payload={repr(payload)}")
+
+    if payload in ("1", "true", "True", "ON", "on", "AN"):
+        running = True
+    else:
+        running = False
+
+    print(f"[STATUS] running = {running}")
+
+    # Normalisiert als "1" oder "0" an alle anderen rausgeben
+    out_payload = "1" if running else "0"
+    # retained=True ist praktisch, dann bekommt jeder neue Subscriber sofort den letzten Status
+    client.publish(TOPIC_OUTPUT, out_payload, retain=True)
+    print(f"[STATUS] Gesendet: {TOPIC_OUTPUT} = {out_payload!r}")
+
+
+client = mqtt.Client()
+client.on_message = on_message
+
+client.connect(BROKER_HOST, 1883, 60)
+client.subscribe(TOPIC_INPUT)
+
+client.loop_start()
+
+print("Status-Normalizer läuft...")
+try:
+    while True:
+        time.sleep(1)
+except KeyboardInterrupt:
+    print("Beende Status-Normalizer...")
+finally:
+    client.loop_stop()
+    client.disconnect()
+
+
+    </code></pre>
+
+Stand: 13.12.2025 v2.3
+
+</body>
+</html>
