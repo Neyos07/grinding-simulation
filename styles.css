@@ -1,0 +1,87 @@
+:root{
+  --bg:#0f172a;
+  --panel:#020617;
+  --text:#e5e7eb;
+  --muted:#9ca3af;
+  --primary:#2563eb;
+  --secondary:#475569;
+}
+
+*{ box-sizing:border-box; }
+
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  background:
+    radial-gradient(1200px 800px at 20% 0%, rgba(37,99,235,.25), transparent 60%),
+    radial-gradient(1200px 800px at 80% 20%, rgba(71,85,105,.20), transparent 60%),
+    var(--bg);
+  color:var(--text);
+  min-height:100vh;
+}
+
+.container{
+  width:min(1000px, 92vw);
+  margin:0 auto;
+  padding:48px 0;
+}
+
+h1{ margin:0 0 12px; line-height:1.15; }
+h2{ margin:0 0 16px; color:var(--muted); font-weight:600; }
+p{ margin:0 0 24px; color:var(--muted); }
+
+/* Button-Liste (untereinander) */
+.button-row{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  margin-top:28px;
+  width: fit-content;
+}
+
+.btn{
+  display:inline-block;
+  padding:16px 28px;
+  border-radius:12px;
+  background:var(--primary);
+  color:white;
+  text-decoration:none;
+  font-weight:700;
+  letter-spacing:.2px;
+  transition:transform .1s ease, filter .2s ease;
+}
+
+.btn:hover{
+  transform:translateY(-2px);
+  filter:brightness(1.05);
+}
+
+.btn:active{
+  transform:translateY(0);
+  filter:brightness(0.98);
+}
+
+.btn-back{ background:var(--secondary); }
+
+/* Codebereich */
+pre{
+  background:var(--panel);
+  padding:20px;
+  border-radius:12px;
+  overflow-x:auto;
+  margin-top:18px;
+  border:1px solid rgba(229,231,235,.10);
+}
+
+/* Kleine Optik für Code (optional) */
+code{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.stand{
+  margin-top: 72px;   /* mehr Abstand nach oben */
+  font-size: 13px;
+  color: var(--muted);
+}

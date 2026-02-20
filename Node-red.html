@@ -1,0 +1,961 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Node-RED</title>
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Optional: Highlight.js auch hier, falls du JSON/Code highlighten willst -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => hljs.highlightAll());
+  </script>
+</head>
+
+<body>
+  <main class="container">
+    <a href="index.html" class="btn btn-back">← Zurück</a>
+
+    <h1>Node-RED</h1>
+    <h2>Flows / Konfiguration</h2>
+
+    <pre><code class="language-json">{
+  [
+    {
+        "id": "93452a7dbd4c2844",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "8bc18dc1f71b2af9",
+        "type": "mongodb4",
+        "z": "93452a7dbd4c2844",
+        "clientNode": "31b9c32af528e3ef",
+        "mode": "collection",
+        "collection": "Simulation",
+        "operation": "find",
+        "output": "forEach",
+        "maxTimeMS": "0",
+        "handleDocId": false,
+        "name": "Simulation",
+        "x": 770,
+        "y": 560,
+        "wires": [
+            [
+                "97fb9681a4ab6296",
+                "da96308ec4a8cbd2",
+                "aaa53f051f0d4ba2"
+            ]
+        ]
+    },
+    {
+        "id": "e7086be9aea1268f",
+        "type": "function",
+        "z": "93452a7dbd4c2844",
+        "name": "Abfrage DB",
+        "func": "// find query argument\nconst query = {};\n// find option argument\nconst options = {\n     sort: { ts: -1 },\n     limit: 2\n};\n// payload for mongodb4 node\nmsg.payload = [query, options];\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 470,
+        "y": 560,
+        "wires": [
+            [
+                "8bc18dc1f71b2af9"
+            ]
+        ]
+    },
+    {
+        "id": "aaf368b243ad95cc",
+        "type": "inject",
+        "z": "93452a7dbd4c2844",
+        "name": "Trigger jede Sekunde",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "1",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 400,
+        "y": 660,
+        "wires": [
+            [
+                "e7086be9aea1268f",
+                "d13c0e28cd626dfb"
+            ]
+        ]
+    },
+    {
+        "id": "8f23d5f8136d6368",
+        "type": "ui-chart",
+        "z": "93452a7dbd4c2844",
+        "group": "9506795c25f8f053",
+        "name": "Motorleistung",
+        "label": "",
+        "order": 2,
+        "chartType": "line",
+        "category": "",
+        "categoryType": "none",
+        "xAxisLabel": "",
+        "xAxisProperty": "",
+        "xAxisPropertyType": "timestamp",
+        "xAxisType": "time",
+        "xAxisFormat": "",
+        "xAxisFormatType": "auto",
+        "xmin": "",
+        "xmax": "",
+        "yAxisLabel": "",
+        "yAxisProperty": "payload",
+        "yAxisPropertyType": "msg",
+        "ymin": "0",
+        "ymax": "3.5",
+        "bins": 10,
+        "action": "append",
+        "stackSeries": false,
+        "pointShape": "false",
+        "pointRadius": 4,
+        "showLegend": true,
+        "removeOlder": "60",
+        "removeOlderUnit": "1",
+        "removeOlderPoints": "",
+        "colors": [
+            "#0095ff",
+            "#ff0000",
+            "#ff7f0e",
+            "#2ca02c",
+            "#a347e1",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "textColor": [
+            "#666666"
+        ],
+        "textColorDefault": false,
+        "gridColor": [
+            "#e5e5e5"
+        ],
+        "gridColorDefault": true,
+        "width": 6,
+        "height": "5",
+        "className": "",
+        "interpolation": "smooth",
+        "x": 1260,
+        "y": 320,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "780946bc11df2771",
+        "type": "ui-gauge",
+        "z": "93452a7dbd4c2844",
+        "name": "",
+        "group": "9506795c25f8f053",
+        "order": 6,
+        "value": "payload",
+        "valueType": "msg",
+        "width": "2",
+        "height": "2",
+        "gtype": "gauge-half",
+        "gstyle": "needle",
+        "title": "Motorleistung",
+        "alwaysShowTitle": false,
+        "floatingTitlePosition": "top-left",
+        "units": "kW",
+        "icon": "",
+        "prefix": "",
+        "suffix": "",
+        "segments": [
+            {
+                "from": "0",
+                "color": "#ff2600",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "1",
+                "color": "#ffc800",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "2",
+                "color": "#00f900",
+                "text": "",
+                "textType": "label"
+            }
+        ],
+        "min": 0,
+        "max": "4",
+        "sizeThickness": 16,
+        "sizeGap": 4,
+        "sizeKeyThickness": 8,
+        "styleRounded": true,
+        "styleGlow": false,
+        "className": "",
+        "x": 1240,
+        "y": 560,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "97fb9681a4ab6296",
+        "type": "function",
+        "z": "93452a7dbd4c2844",
+        "name": "Export Motorleistung & Zeit",
+        "func": "// Extrahiere die Werte aus dem Objekt\nconst data = msg.payload;\n\n\nmsg.topic = \"P_kW\";\nmsg.payload = data.P_kW;\n\n// Zeitstempel in eine Zahl für das Diagramm umwandeln:\nmsg.timestamp = new Date(data.ts).getTime();\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1020,
+        "y": 320,
+        "wires": [
+            [
+                "8f23d5f8136d6368",
+                "3968ab42c89bedfe"
+            ]
+        ]
+    },
+    {
+        "id": "da96308ec4a8cbd2",
+        "type": "function",
+        "z": "93452a7dbd4c2844",
+        "name": "Motorlast runden",
+        "func": "// Werte aus dem Objekt holen\nconst data = msg.payload;\n\n// Auf eine Nachkommastelle runden:\nmsg.payload = Number(data.P_kW.toFixed(2));\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1010,
+        "y": 560,
+        "wires": [
+            [
+                "780946bc11df2771"
+            ]
+        ]
+    },
+    {
+        "id": "3083de0a2b8947d8",
+        "type": "mqtt out",
+        "z": "93452a7dbd4c2844",
+        "name": "",
+        "topic": "maschine/status",
+        "qos": "0",
+        "retain": "true",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "78c11c8d78b293a2",
+        "x": 640,
+        "y": 800,
+        "wires": []
+    },
+    {
+        "id": "978db2548c22f7ff",
+        "type": "ui-button",
+        "z": "93452a7dbd4c2844",
+        "group": "9506795c25f8f053",
+        "name": "",
+        "label": "Programmstart",
+        "order": 3,
+        "width": "3",
+        "height": "1",
+        "emulateClick": false,
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "iconPosition": "left",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "buttonColor": "#4CAF50",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 300,
+        "y": 720,
+        "wires": [
+            [
+                "80fb8e2e34d81df8"
+            ]
+        ]
+    },
+    {
+        "id": "80fb8e2e34d81df8",
+        "type": "function",
+        "z": "93452a7dbd4c2844",
+        "name": "Programmlaufzeit",
+        "func": "flow.set(\"cnc_running\", true);\nflow.set(\"cnc_start_ts\", Date.now());\n\n\n\n\n\n\nconst DURATION_SEC = 30;\n\n// alten Timer abbrechen\nif (context.timeout) {\n    clearTimeout(context.timeout);\n    context.timeout = null;\n}\n\n// CNC läuft jetzt\nflow.set(\"cnc_running\", true);\n\n// (optional) Start/Ende merken\nflow.set(\"cnc_start_ts\", Date.now());\nflow.set(\"cnc_end_ts\", Date.now() + DURATION_SEC * 1000);\n\n// Startsignal\nlet outOn = { payload: 1 };\n\ncontext.timeout = setTimeout(() => {\n\n    const bz = flow.get(\"lastBandzustand\");\n    let result = 0;\n\n    if (bz != null && bz < 50) result = 2;\n\n    node.send({ payload: result });\n\n    // CNC beendet\n    //flow.set(\"cnc_running\", false);\n    //flow.set(\"cnc_start_ts\", null);\n    //flow.set(\"cnc_end_ts\", null);\n\n    flow.set(\"cnc_running\", false);\n    flow.set(\"cnc_start_ts\", null);\n\n    context.timeout = null;\n\n}, DURATION_SEC * 1000);\n\nreturn outOn;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "\n",
+        "finalize": "",
+        "libs": [],
+        "x": 310,
+        "y": 800,
+        "wires": [
+            [
+                "3083de0a2b8947d8",
+                "d13c0e28cd626dfb",
+                "c85a5e86a6e77e61",
+                "2bc58322f3aa7c0f"
+            ]
+        ]
+    },
+    {
+        "id": "fd38cc4dcb90f0fc",
+        "type": "ui-button",
+        "z": "93452a7dbd4c2844",
+        "group": "9506795c25f8f053",
+        "name": "Bandwechsel",
+        "label": "Bandwechsel",
+        "order": 4,
+        "width": "3",
+        "height": "1",
+        "emulateClick": false,
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "iconPosition": "left",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "bandwechsel",
+        "topicType": "str",
+        "buttonColor": "",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 320,
+        "y": 380,
+        "wires": [
+            [
+                "1dabc415bc6c14a1",
+                "d7fbc23b48d6b6ca",
+                "9e433bc191329328",
+                "30f988576be841ec",
+                "dde5c0d044a089d2",
+                "3968ab42c89bedfe"
+            ]
+        ]
+    },
+    {
+        "id": "1dabc415bc6c14a1",
+        "type": "mqtt out",
+        "z": "93452a7dbd4c2844",
+        "name": "",
+        "topic": "maschine/belt",
+        "qos": "0",
+        "retain": "true",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "78c11c8d78b293a2",
+        "x": 540,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "9bd05f350236b273",
+        "type": "ui-text",
+        "z": "93452a7dbd4c2844",
+        "group": "9506795c25f8f053",
+        "order": 5,
+        "width": "1",
+        "height": "1",
+        "name": "Restlaufzeit",
+        "label": "Laufzeit [s]",
+        "format": "{{msg.payload}}",
+        "layout": "col-center",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#717171",
+        "wrapText": false,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 990,
+        "y": 660,
+        "wires": []
+    },
+    {
+        "id": "d13c0e28cd626dfb",
+        "type": "function",
+        "z": "93452a7dbd4c2844",
+        "name": "Laufzeit abfragen",
+        "func": "// Endzeit aus Flow-Kontext holen\nconst endTime = flow.get(\"cnc_end_ts\");\n\nif (!endTime) {\n    // Kein aktives Programm → Restzeit 0\n    msg.payload = 0;\n    return msg;\n}\n\n// Jetztzeit\nconst now = Date.now();\n\n// Differenz\nlet diff = endTime - now;\n\n// Programm abgelaufen?\nif (diff <= 0) {\n    msg.payload = 0;\n    flow.set(\"cnc_end_ts\", null);\n    return msg;\n}\n\n// Restzeit in Sekunden\nmsg.payload = Math.ceil(diff / 1000);\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 790,
+        "y": 660,
+        "wires": [
+            [
+                "9bd05f350236b273"
+            ]
+        ]
+    },
+    {
+        "id": "c85a5e86a6e77e61",
+        "type": "ui-led",
+        "z": "93452a7dbd4c2844",
+        "name": "Status",
+        "group": "9506795c25f8f053",
+        "order": 1,
+        "width": "2",
+        "height": "1",
+        "label": "Maschinenzustand",
+        "labelPlacement": "right",
+        "labelAlignment": "left",
+        "states": [
+            {
+                "value": "0",
+                "valueType": "num",
+                "color": "#ff9300"
+            },
+            {
+                "value": "1",
+                "valueType": "num",
+                "color": "#00f900"
+            },
+            {
+                "value": "2",
+                "valueType": "num",
+                "color": "#ff2600"
+            }
+        ],
+        "allowColorForValueInMessage": false,
+        "shape": "circle",
+        "showBorder": true,
+        "showGlow": true,
+        "x": 710,
+        "y": 620,
+        "wires": []
+    },
+    {
+        "id": "806ea8a9372757a1",
+        "type": "ui-text",
+        "z": "93452a7dbd4c2844",
+        "group": "9506795c25f8f053",
+        "order": 7,
+        "width": "2",
+        "height": "1",
+        "name": "Bandzustand",
+        "label": "Bandzustand [%]",
+        "format": "{{msg.payload}}",
+        "layout": "col-center",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#717171",
+        "wrapText": false,
+        "className": "",
+        "value": "payload",
+        "valueType": "msg",
+        "x": 1270,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "aaa53f051f0d4ba2",
+        "type": "function",
+        "z": "93452a7dbd4c2844",
+        "name": "Export Start- und Endwert",
+        "func": "// Erwartet: msg.payload = { P_kW, P0, Pend }\nconst data = msg.payload;\n\n// Marker: kommt aus Export/DB\nmsg._src = \"export\";\n\nif (!data || typeof data !== \"object\") return null;\n\n// Werte übernehmen\nmsg.P_kW = data.P_kW;\nmsg.P0 = data.P0;\nmsg.Pend = data.Pend;\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1060,
+        "y": 500,
+        "wires": [
+            [
+                "d7fbc23b48d6b6ca"
+            ]
+        ]
+    },
+    {
+        "id": "d7fbc23b48d6b6ca",
+        "type": "function",
+        "z": "93452a7dbd4c2844",
+        "name": "Bandzustand berechnen",
+        "func": "// Letzten gültigen Wert holen\nlet last = context.get(\"lastBandzustand\");\n\n// 1) Bandwechsel (Button)\n\nif (msg.payload === \"bandwechsel\" || msg.topic === \"bandwechsel\") {\n    context.set(\"lastBandzustand\", 100);\n    msg.payload = 100;\n    msg.topic = \"Bandzustand\";\n    return msg;\n}\n\n\n// 2) Nur Export-Updates rechnen\nif (msg._src !== \"export\") {\n    // Für Dashboard: letzten Wert erneut ausgeben (falls vorhanden)\n    if (last != null) {\n        msg.payload = last;\n        msg.topic = \"Bandzustand\";\n        return msg;\n    }\n    return null;\n}\n\nif (msg.P_kW == null || msg.P0 == null) {\n    if (last != null) {\n        msg.payload = last;\n        msg.topic = \"Bandzustand\";\n        return msg;\n    }\n    return null;\n}\n\nconst span = msg.P0 - 0;\nif (span <= 0) {\n    if (last != null) {\n        msg.payload = last;\n        msg.topic = \"Bandzustand\";\n        return msg;\n    }\n    return null;\n}\n\n// 3) Berechnung\nlet bandzustand = (msg.P_kW / span) * 100;\nbandzustand = Math.max(0, Math.min(100, bandzustand));\nbandzustand = Math.round(bandzustand);\n\n// WICHTIG: 0 NICHT fürs Dashboard übernehmen\nif (bandzustand === 0 && last != null) {\n    msg.payload = last;\n    msg.topic = \"Bandzustand\";\n    return msg;\n}\n\n// sonst normal speichern & ausgeben\ncontext.set(\"lastBandzustand\", bandzustand);\nflow.set(\"lastBandzustand\", bandzustand);   // <— WICHTIG für andere Nodes\n\nmsg.payload = bandzustand;\nmsg.topic = \"Bandzustand\";\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1050,
+        "y": 380,
+        "wires": [
+            [
+                "806ea8a9372757a1"
+            ]
+        ]
+    },
+    {
+        "id": "9e433bc191329328",
+        "type": "ui-notification",
+        "z": "93452a7dbd4c2844",
+        "ui": "addb4f336af6568f",
+        "position": "top center",
+        "colorDefault": false,
+        "color": "#00f900",
+        "displayTime": "3",
+        "showCountdown": false,
+        "outputs": 1,
+        "allowDismiss": true,
+        "dismissText": "Bandwechsel quittiert",
+        "allowConfirm": false,
+        "confirmText": "Bestätigen",
+        "raw": false,
+        "className": "",
+        "name": "Bandwechsel quittiert",
+        "x": 580,
+        "y": 460,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "30f988576be841ec",
+        "type": "function",
+        "z": "93452a7dbd4c2844",
+        "name": "Bandwechsel zählen",
+        "func": "// zählt, wie oft der Button gedrückt wurde\nlet c = flow.get(\"bandwechsel_count\") || 0;\nc += 1;\nflow.set(\"bandwechsel_count\", c);\n\n// fürs Dashboard anzeigen\nmsg.topic = \"Bandwechsel Zähler\";\nmsg.payload = c;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 740,
+        "y": 340,
+        "wires": [
+            [
+                "e6168202c3c9d7de"
+            ]
+        ]
+    },
+    {
+        "id": "e6168202c3c9d7de",
+        "type": "ui-text",
+        "z": "93452a7dbd4c2844",
+        "group": "9506795c25f8f053",
+        "order": 8,
+        "width": "2",
+        "height": "1",
+        "name": "",
+        "label": "Schleifbänder verbraucht",
+        "format": "{{msg.payload}}",
+        "layout": "col-center",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#717171",
+        "wrapText": false,
+        "className": "",
+        "value": "",
+        "valueType": "str",
+        "x": 750,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "bf854e9af085aa65",
+        "type": "ui-notification",
+        "z": "93452a7dbd4c2844",
+        "ui": "addb4f336af6568f",
+        "position": "top center",
+        "colorDefault": false,
+        "color": "#ff2600",
+        "displayTime": "5",
+        "showCountdown": true,
+        "outputs": 1,
+        "allowDismiss": true,
+        "dismissText": "Bandwechsel erforderlich",
+        "allowConfirm": false,
+        "confirmText": "Bestätigen",
+        "raw": false,
+        "className": "",
+        "name": "Bandwechsel erforderlich",
+        "x": 1030,
+        "y": 740,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "2bc58322f3aa7c0f",
+        "type": "function",
+        "z": "93452a7dbd4c2844",
+        "name": "Trigger für Benachrichtigung",
+        "func": "if (msg.payload === 2) {\n    return {\n        payload: \"⚠️\",\n        topic: \"Warnung\"\n    };\n}\n\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 740,
+        "y": 740,
+        "wires": [
+            [
+                "bf854e9af085aa65"
+            ]
+        ]
+    },
+    {
+        "id": "dde5c0d044a089d2",
+        "type": "function",
+        "z": "93452a7dbd4c2844",
+        "name": "Reset LED nach Bandwechsel",
+        "func": "msg.payload = 0;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 610,
+        "y": 420,
+        "wires": [
+            [
+                "c85a5e86a6e77e61"
+            ]
+        ]
+    },
+    {
+        "id": "7afec0e09b3352ed",
+        "type": "mqtt out",
+        "z": "93452a7dbd4c2844",
+        "name": "",
+        "topic": "maschine/belt/prog",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "78c11c8d78b293a2",
+        "x": 1250,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "3968ab42c89bedfe",
+        "type": "function",
+        "z": "93452a7dbd4c2844",
+        "name": "JSON erstellen",
+        "func": "const MAX_POINTS = 20000;\n\nlet buf = context.get(\"buf\") || [];\nlet cycle = context.get(\"cycle\") || 1;\n\nif (msg.payload === \"bandwechsel\" || msg.topic === \"bandwechsel\") {\n\n    if (buf.length === 0) return [null, null];\n\n    const start_ts = buf[0].ts;\n    const end_ts = buf[buf.length - 1].ts;\n\n    const out = {\n        cycle_id: cycle,\n        start_ts,\n        end_ts,\n        duration_s: Math.round((end_ts - start_ts) / 1000),\n        points_count: buf.length,\n        points: buf\n    };\n\n    context.set(\"buf\", []);\n    context.set(\"cycle\", cycle + 1);\n\n    // Output 1 -> MQTT (geht danach durch json-node)\n    const msgMqtt = { topic: \"maschine/belt/cycle\", payload: out };\n\n\n    return [msgMqtt, msgMongo];\n}\n\nconst P_kW = Number(msg.payload);\nconst ts = Number(msg.timestamp);\n\nif (!isFinite(P_kW) || !isFinite(ts)) return [null, null];\n\nbuf.push({ ts, P_kW });\nif (buf.length > MAX_POINTS) buf.shift();\n\ncontext.set(\"buf\", buf);\nreturn [null, null];",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 820,
+        "y": 240,
+        "wires": [
+            [
+                "643804249069508c"
+            ]
+        ]
+    },
+    {
+        "id": "643804249069508c",
+        "type": "json",
+        "z": "93452a7dbd4c2844",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 1010,
+        "y": 240,
+        "wires": [
+            [
+                "7afec0e09b3352ed"
+            ]
+        ]
+    },
+    {
+        "id": "50fbad288f5a0b6d",
+        "type": "mqtt in",
+        "z": "93452a7dbd4c2844",
+        "name": "",
+        "topic": "maschine/belt/prog/result",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "78c11c8d78b293a2",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 390,
+        "y": 860,
+        "wires": [
+            [
+                "eac6828165f842b8"
+            ]
+        ]
+    },
+    {
+        "id": "accacaa6244bc756",
+        "type": "ui-text",
+        "z": "93452a7dbd4c2844",
+        "group": "9506795c25f8f053",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "name": "Ausgabe Bandwechsel",
+        "label": "Standzeit Schleifband [s]",
+        "format": "{{msg.payload}}",
+        "layout": "col-center",
+        "style": false,
+        "font": "",
+        "fontSize": 16,
+        "color": "#717171",
+        "wrapText": false,
+        "className": "",
+        "value": "payload.avg_cycle_s_even",
+        "valueType": "msg",
+        "x": 1000,
+        "y": 860,
+        "wires": []
+    },
+    {
+        "id": "eac6828165f842b8",
+        "type": "function",
+        "z": "93452a7dbd4c2844",
+        "name": "Restlaufzeit Band",
+        "func": "if (msg.payload && msg.payload.avg_cycle_s !== undefined) {\n    let v = msg.payload.avg_cycle_s;\n\n    // normal runden\n    let rounded = Math.round(v);\n\n    // auf gerade Zahl korrigieren\n    if (rounded % 2 !== 0) {\n        rounded += 1;\n    }\n\n    msg.payload.avg_cycle_s_even = rounded;\n    return msg;\n}\n\nreturn null;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 690,
+        "y": 860,
+        "wires": [
+            [
+                "accacaa6244bc756"
+            ]
+        ]
+    },
+    {
+        "id": "31b9c32af528e3ef",
+        "type": "mongodb4-client",
+        "name": "",
+        "protocol": "mongodb",
+        "hostname": "127.0.0.1",
+        "port": "27017",
+        "dbName": "Motorleistung",
+        "appName": "",
+        "authSource": "",
+        "authMechanism": "DEFAULT",
+        "tls": false,
+        "tlsCAFile": "",
+        "tlsCertificateKeyFile": "",
+        "tlsInsecure": false,
+        "connectTimeoutMS": "30000",
+        "socketTimeoutMS": "0",
+        "minPoolSize": "0",
+        "maxPoolSize": "100",
+        "maxIdleTimeMS": "0",
+        "uri": "",
+        "advanced": "{}",
+        "uriTabActive": "tab-uri-simple"
+    },
+    {
+        "id": "9506795c25f8f053",
+        "type": "ui-group",
+        "name": "Live-Daten",
+        "page": "3067c0ed5bc61db7",
+        "width": 6,
+        "height": 1,
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "78c11c8d78b293a2",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "127.0.0.1",
+        "port": 1883,
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "addb4f336af6568f",
+        "type": "ui-base",
+        "name": "Mein Dashboard",
+        "path": "/dashboard",
+        "appIcon": "",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
+        ],
+        "showPathInSidebar": false,
+        "headerContent": "page",
+        "navigationStyle": "default",
+        "titleBarStyle": "default",
+        "showReconnectNotification": true,
+        "notificationDisplayTime": 1,
+        "showDisconnectNotification": true,
+        "allowInstall": false
+    },
+    {
+        "id": "3067c0ed5bc61db7",
+        "type": "ui-page",
+        "name": "Hauptseite",
+        "ui": "addb4f336af6568f",
+        "path": "/page1",
+        "icon": "home",
+        "layout": "grid",
+        "theme": "94c1ed7a80350582",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": "0",
+                "cols": "3"
+            },
+            {
+                "name": "Tablet",
+                "px": "576",
+                "cols": "6"
+            },
+            {
+                "name": "Small Desktop",
+                "px": "768",
+                "cols": "9"
+            },
+            {
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "12"
+            }
+        ],
+        "order": 1,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "94c1ed7a80350582",
+        "type": "ui-theme",
+        "name": "Standardthema",
+        "colors": {
+            "surface": "#ffffff",
+            "primary": "#0094CE",
+            "bgPage": "#eeeeee",
+            "groupBg": "#ffffff",
+            "groupOutline": "#cccccc"
+        },
+        "sizes": {
+            "density": "default",
+            "pagePadding": "12px",
+            "groupGap": "12px",
+            "groupBorderRadius": "4px",
+            "widgetGap": "12px"
+        }
+    },
+    {
+        "id": "907cf7aba0d3ce19",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-mongodb4": "3.1.1",
+            "@flowfuse/node-red-dashboard": "1.29.0",
+            "@flowfuse/node-red-dashboard-2-ui-led": "1.1.0"
+        }
+    }
+]
+}</code></pre>
+
+  </main>
+</body>
+</html>
